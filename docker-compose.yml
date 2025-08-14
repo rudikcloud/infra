@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rudikcloud}
+      POSTGRES_USER: ${POSTGRES_USER:-rudik}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rudik}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  auth-service:
+    build:
+      context: ../auth-service
+    environment:
+      DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql://rudik:rudik@postgres:5432/rudikcloud}
+      REDIS_URL: ${AUTH_REDIS_URL:-redis://redis:6379/0}
+      PORT: 8001
+    ports:
+      - "${AUTH_SERVICE_PORT:-8001}:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: ../dashboard
+    environment:
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-http://auth-service:8001}
+      PORT: 3000
+    ports:
+      - "${DASHBOARD_PORT:-3000}:3000"
+    depends_on:
+      - auth-service
+
+volumes:
+  postgres_data:
+  redis_data:

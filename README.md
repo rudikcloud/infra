@@ -1,0 +1,73 @@
+## Infra (Local Dev Orchestration)
+
+This repo runs the local RudikCloud stack for Milestone 0:
+
+- PostgreSQL
+- Redis
+- `auth-service` (built from `../auth-service`)
+- `dashboard` (built from `../dashboard`)
+
+## Quickstart
+
+1. Create local env file:
+
+```bash
+cp .env.example .env
+```
+
+2. Start the stack from `infra/`:
+
+```bash
+docker compose up --build
+```
+
+Or with Make:
+
+```bash
+make up
+```
+
+3. Stop the stack:
+
+```bash
+make down
+```
+
+4. Follow logs:
+
+```bash
+make logs
+```
+
+5. Reset containers + volumes:
+
+```bash
+make reset
+```
+
+## Ports
+
+- Dashboard: `3000`
+- Auth service: `8001`
+- PostgreSQL: `5432`
+- Redis: `6379`
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and adjust if needed.
+
+- `POSTGRES_DB`: PostgreSQL database name.
+- `POSTGRES_USER`: PostgreSQL username.
+- `POSTGRES_PASSWORD`: PostgreSQL password (dev-only default).
+- `POSTGRES_PORT`: Host port mapped to container Postgres `5432`.
+- `REDIS_PORT`: Host port mapped to container Redis `6379`.
+- `AUTH_SERVICE_PORT`: Host port mapped to auth-service container `8001`.
+- `DASHBOARD_PORT`: Host port mapped to dashboard container `3000`.
+- `AUTH_DATABASE_URL`: DB URL used by auth-service.
+- `AUTH_REDIS_URL`: Redis URL used by auth-service.
+- `AUTH_SERVICE_URL`: URL dashboard uses to call auth-service on the Docker network.
+
+## Notes
+
+- `auth-service` and `dashboard` need their own `Dockerfile` to build successfully.
+- This setup is intentionally dev-friendly and not production hardened.
