@@ -65,7 +65,9 @@ Copy `.env.example` to `.env` and adjust if needed.
 - `DASHBOARD_PORT`: Host port mapped to dashboard container `3000`.
 - `AUTH_DATABASE_URL`: DB URL used by auth-service.
 - `AUTH_REDIS_URL`: Redis URL used by auth-service.
-- `AUTH_SERVICE_URL`: URL dashboard uses to call auth-service on the Docker network.
+- `AUTH_JWT_SECRET`: JWT signing secret for auth-service (dev placeholder).
+- `AUTH_JWT_ISSUER`: JWT issuer value for auth-service.
+- `NEXT_PUBLIC_AUTH_BASE_URL`: URL dashboard uses to call auth-service on the Docker network.
 
 ## Notes
 
