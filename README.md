@@ -67,6 +67,11 @@ Copy `.env.example` to `.env` and adjust if needed.
 - `AUTH_REDIS_URL`: Redis URL used by auth-service.
 - `AUTH_JWT_SECRET`: JWT signing secret for auth-service (dev placeholder).
 - `AUTH_JWT_ISSUER`: JWT issuer value for auth-service.
+- `AUTH_CORS_ORIGINS`: Allowed CORS origins for auth-service.
+- `AUTH_SESSION_COOKIE_NAME`: Auth session cookie name.
+- `AUTH_SESSION_TTL_SECONDS`: Session lifetime in seconds.
+- `AUTH_COOKIE_SECURE`: Whether auth cookie requires HTTPS.
+- `AUTH_COOKIE_SAMESITE`: SameSite value for auth cookie.
 - `NEXT_PUBLIC_AUTH_BASE_URL`: URL dashboard uses to call auth-service on the Docker network.
 
 ## Notes
