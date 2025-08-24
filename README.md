@@ -72,7 +72,7 @@ Copy `.env.example` to `.env` and adjust if needed.
 - `AUTH_SESSION_TTL_SECONDS`: Session lifetime in seconds.
 - `AUTH_COOKIE_SECURE`: Whether auth cookie requires HTTPS.
 - `AUTH_COOKIE_SAMESITE`: SameSite value for auth cookie.
-- `NEXT_PUBLIC_AUTH_BASE_URL`: URL dashboard uses to call auth-service on the Docker network.
+- `NEXT_PUBLIC_AUTH_BASE_URL`: Browser-facing auth-service URL used by dashboard (default `http://localhost:8001`).
 
 ## Notes
 
