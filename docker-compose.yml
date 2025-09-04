@@ -35,7 +35,7 @@ services:
       REDIS_URL: ${AUTH_REDIS_URL:-redis://redis:6379/0}
       JWT_SECRET: ${AUTH_JWT_SECRET:-dev-only-change-me}
       JWT_ISSUER: ${AUTH_JWT_ISSUER:-rudikcloud-auth}
-      CORS_ORIGINS: ${AUTH_CORS_ORIGINS:-http://localhost:3000}
+      CORS_ORIGINS: ${AUTH_CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
       SESSION_COOKIE_NAME: ${AUTH_SESSION_COOKIE_NAME:-auth_session}
       SESSION_TTL_SECONDS: ${AUTH_SESSION_TTL_SECONDS:-86400}
       COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
@@ -63,6 +63,27 @@ services:
     ports:
       - "${DASHBOARD_PORT:-3000}:3000"
     depends_on:
+      auth-service:
+        condition: service_healthy
+
+  orders-service:
+    build:
+      context: ../orders-service
+    environment:
+      DATABASE_URL: ${ORDERS_DATABASE_URL:-postgresql://rudik:rudik@postgres:5432/rudikcloud}
+      AUTH_SERVICE_URL: ${ORDERS_AUTH_SERVICE_URL:-http://auth-service:8000}
+      AUTH_REQUEST_TIMEOUT_SECONDS: ${ORDERS_AUTH_REQUEST_TIMEOUT_SECONDS:-5}
+      PORT: 8002
+    ports:
+      - "${ORDERS_SERVICE_PORT:-8002}:8002"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys;sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8002/health').status==200 else 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
       auth-service:
         condition: service_healthy
 
