@@ -46,11 +46,17 @@ make logs
 make reset
 ```
 
+6. Quick health check for orders-service:
+
+```bash
+curl http://localhost:8002/health
+```
+
 ## Ports
 
 - Dashboard: `3000`
 - Auth service: `8001`
-- Orders service: `8002`
+- Orders service: `8002` (fixed host mapping)
 - PostgreSQL: `5432`
 - Redis: `6379`
 
@@ -65,7 +71,6 @@ Copy `.env.example` to `.env` and adjust if needed.
 - `REDIS_PORT`: Host port mapped to container Redis `6379`.
 - `AUTH_SERVICE_PORT`: Host port mapped to auth-service container `8001`.
 - `DASHBOARD_PORT`: Host port mapped to dashboard container `3000`.
-- `ORDERS_SERVICE_PORT`: Host port mapped to orders-service container `8002`.
 - `AUTH_DATABASE_URL`: DB URL used by auth-service.
 - `AUTH_REDIS_URL`: Redis URL used by auth-service.
 - `AUTH_JWT_SECRET`: JWT signing secret for auth-service (dev placeholder).
