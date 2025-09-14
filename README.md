@@ -7,6 +7,7 @@ This repo runs the local RudikCloud stack for Milestone 0:
 - `auth-service` (built from `../auth-service`)
 - `dashboard` (built from `../dashboard`)
 - `orders-service` (built from `../orders-service`)
+- `flags-service` (built from `../flags-service`)
 
 ## Quickstart
 
@@ -57,6 +58,7 @@ curl http://localhost:8002/health
 - Dashboard: `3000`
 - Auth service: `8001`
 - Orders service: `8002` (fixed host mapping)
+- Flags service: `8003` (fixed host mapping)
 - PostgreSQL: `5432`
 - Redis: `6379`
 
@@ -84,6 +86,9 @@ Copy `.env.example` to `.env` and adjust if needed.
 - `ORDERS_DATABASE_URL`: DB URL used by orders-service.
 - `ORDERS_AUTH_SERVICE_URL`: Internal auth-service URL used by orders-service for `/me` validation.
 - `ORDERS_AUTH_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for orders-service auth-service calls.
+- `FLAGS_DATABASE_URL`: DB URL used by flags-service.
+- `FLAGS_AUTH_SERVICE_URL`: Internal auth-service URL used by flags-service for `/me` validation.
+- `FLAGS_AUTH_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for flags-service auth-service calls.
 
 ## Notes
 

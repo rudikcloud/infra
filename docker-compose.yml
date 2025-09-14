@@ -87,6 +87,27 @@ services:
       auth-service:
         condition: service_healthy
 
+  flags-service:
+    build:
+      context: ../flags-service
+    environment:
+      DATABASE_URL: ${FLAGS_DATABASE_URL:-postgresql://rudik:rudik@postgres:5432/rudikcloud}
+      AUTH_SERVICE_URL: ${FLAGS_AUTH_SERVICE_URL:-http://auth-service:8000}
+      AUTH_REQUEST_TIMEOUT_SECONDS: ${FLAGS_AUTH_REQUEST_TIMEOUT_SECONDS:-5}
+      PORT: 8003
+    ports:
+      - "8003:8003"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys;sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8003/health').status==200 else 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   redis_data:
