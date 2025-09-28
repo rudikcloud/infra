@@ -71,8 +71,12 @@ services:
       context: ../orders-service
     environment:
       DATABASE_URL: ${ORDERS_DATABASE_URL:-postgresql://rudik:rudik@postgres:5432/rudikcloud}
+      REDIS_URL: ${ORDERS_REDIS_URL:-redis://redis:6379/0}
+      ORDERS_EVENTS_STREAM: ${ORDERS_EVENTS_STREAM:-orders.events}
       AUTH_SERVICE_URL: ${ORDERS_AUTH_SERVICE_URL:-http://auth-service:8000}
       AUTH_REQUEST_TIMEOUT_SECONDS: ${ORDERS_AUTH_REQUEST_TIMEOUT_SECONDS:-5}
+      FLAGS_SERVICE_URL: ${ORDERS_FLAGS_SERVICE_URL:-http://flags-service:8000}
+      FLAGS_REQUEST_TIMEOUT_SECONDS: ${ORDERS_FLAGS_REQUEST_TIMEOUT_SECONDS:-5}
       PORT: 8002
     ports:
       - "8002:8002"
@@ -85,6 +89,8 @@ services:
       postgres:
         condition: service_healthy
       auth-service:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   flags-service:
@@ -106,6 +112,27 @@ services:
       postgres:
         condition: service_healthy
       auth-service:
+        condition: service_healthy
+
+  notifications-worker:
+    build:
+      context: ../notifications-worker
+    environment:
+      DATABASE_URL: ${NOTIFICATIONS_DATABASE_URL:-postgresql://rudik:rudik@postgres:5432/rudikcloud}
+      REDIS_URL: ${NOTIFICATIONS_REDIS_URL:-redis://redis:6379/0}
+      ORDERS_EVENTS_STREAM: ${NOTIFICATIONS_ORDERS_EVENTS_STREAM:-orders.events}
+      ORDERS_RETRY_ZSET: ${NOTIFICATIONS_ORDERS_RETRY_ZSET:-orders.retry}
+      ORDERS_DLQ_STREAM: ${NOTIFICATIONS_ORDERS_DLQ_STREAM:-orders.dlq}
+      MAX_ATTEMPTS: ${NOTIFICATIONS_MAX_ATTEMPTS:-5}
+      WORKER_POLL_INTERVAL_MS: ${NOTIFICATIONS_WORKER_POLL_INTERVAL_MS:-500}
+      FAIL_MODE: ${NOTIFICATIONS_FAIL_MODE:-off}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      orders-service:
         condition: service_healthy
 
 volumes:
