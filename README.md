@@ -8,6 +8,7 @@ This repo runs the local RudikCloud stack for Milestone 0:
 - `dashboard` (built from `../dashboard`)
 - `orders-service` (built from `../orders-service`)
 - `flags-service` (built from `../flags-service`)
+- `notifications-worker` (built from `../notifications-worker`)
 
 ## Quickstart
 
@@ -65,6 +66,7 @@ curl http://localhost:8003/health
 - Auth service: `8001`
 - Orders service: `8002` (fixed host mapping)
 - Flags service: `8003` (mapped to container `8000`)
+- Notifications worker: no host port (background worker only)
 - PostgreSQL: `5432`
 - Redis: `6379`
 
@@ -91,14 +93,28 @@ Copy `.env.example` to `.env` and adjust if needed.
 - `AUTH_COOKIE_SAMESITE`: SameSite value for auth cookie.
 - `NEXT_PUBLIC_AUTH_BASE_URL`: Browser-facing auth-service URL used by dashboard (default `http://localhost:8001`).
 - `ORDERS_DATABASE_URL`: DB URL used by orders-service.
+- `ORDERS_REDIS_URL`: Redis URL used by orders-service.
+- `ORDERS_EVENTS_STREAM`: Stream name where orders-service emits `order.created`.
 - `ORDERS_AUTH_SERVICE_URL`: Internal auth-service URL used by orders-service for `/me` validation.
 - `ORDERS_AUTH_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for orders-service auth-service calls.
+- `ORDERS_FLAGS_SERVICE_URL`: Internal flags-service URL used by orders-service.
+- `ORDERS_FLAGS_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for orders-service flags-service calls.
 - `FLAGS_DATABASE_URL`: DB URL used by flags-service.
 - `FLAGS_AUTH_SERVICE_URL`: Internal auth-service URL used by flags-service for `/me` validation.
 - `FLAGS_AUTH_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for flags-service auth-service calls.
+- `NOTIFICATIONS_DATABASE_URL`: DB URL used by notifications-worker.
+- `NOTIFICATIONS_REDIS_URL`: Redis URL used by notifications-worker.
+- `NOTIFICATIONS_ORDERS_EVENTS_STREAM`: Incoming stream consumed by notifications-worker.
+- `NOTIFICATIONS_ORDERS_RETRY_ZSET`: Retry queue zset name.
+- `NOTIFICATIONS_ORDERS_DLQ_STREAM`: Dead-letter queue stream name.
+- `NOTIFICATIONS_MAX_ATTEMPTS`: Max attempts before worker writes to DLQ.
+- `NOTIFICATIONS_WORKER_POLL_INTERVAL_MS`: Poll interval for worker stream/retry processing.
+- `NOTIFICATIONS_FAIL_MODE`: Failure simulation mode (`off`, `always`, `random`).
 
 ## Notes
 
 - `auth-service` and `dashboard` need their own `Dockerfile` to build successfully.
 - Milestone 1 auth defaults are set for local dev: `AUTH_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000`, `AUTH_COOKIE_SECURE=false`, `AUTH_COOKIE_SAMESITE=lax`.
+- Milestone 4 worker demo: set `NOTIFICATIONS_FAIL_MODE=always` in `infra/.env`, restart `notifications-worker`, create an order, then inspect DLQ with:
+  `docker compose exec -T redis redis-cli XRANGE orders.dlq - +`.
 - This setup is intentionally dev-friendly and not production hardened.
