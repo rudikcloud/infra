@@ -114,6 +114,19 @@ services:
       auth-service:
         condition: service_healthy
 
+  audit-service-java:
+    build:
+      context: ../audit-service-java
+    environment:
+      DATABASE_URL: ${AUDIT_DATABASE_URL:-jdbc:postgresql://postgres:5432/rudikcloud?user=rudik&password=rudik}
+      AUDIT_INGEST_TOKEN: ${AUDIT_INGEST_TOKEN:-dev-audit-token}
+      PORT: 8000
+    ports:
+      - "${AUDIT_SERVICE_PORT:-8004}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   notifications-worker:
     build:
       context: ../notifications-worker
