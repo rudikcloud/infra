@@ -102,9 +102,11 @@ Copy `.env.example` to `.env` and adjust if needed.
 - `ORDERS_AUTH_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for orders-service auth-service calls.
 - `ORDERS_FLAGS_SERVICE_URL`: Internal flags-service URL used by orders-service.
 - `ORDERS_FLAGS_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for orders-service flags-service calls.
+- `ORDERS_AUDIT_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for orders-service audit-service calls.
 - `FLAGS_DATABASE_URL`: DB URL used by flags-service.
 - `FLAGS_AUTH_SERVICE_URL`: Internal auth-service URL used by flags-service for `/me` validation.
 - `FLAGS_AUTH_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for flags-service auth-service calls.
+- `FLAGS_AUDIT_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for flags-service audit-service calls.
 - `AUDIT_DATABASE_URL`: JDBC URL used by audit-service-java.
 - `AUDIT_INGEST_TOKEN`: Shared internal header token used by audit ingestion (`X-Internal-Token`).
 - `AUDIT_SERVICE_URL`: Internal base URL for audit-service-java (for service-to-service usage).

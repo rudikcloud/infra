@@ -59,6 +59,8 @@ services:
       context: ../dashboard
     environment:
       NEXT_PUBLIC_AUTH_BASE_URL: ${NEXT_PUBLIC_AUTH_BASE_URL:-http://localhost:8001}
+      AUDIT_SERVICE_URL: ${AUDIT_SERVICE_URL:-http://audit-service-java:8000}
+      AUDIT_INGEST_TOKEN: ${AUDIT_INGEST_TOKEN:-dev-audit-token}
       PORT: 3000
     ports:
       - "${DASHBOARD_PORT:-3000}:3000"
@@ -73,6 +75,9 @@ services:
       DATABASE_URL: ${ORDERS_DATABASE_URL:-postgresql://rudik:rudik@postgres:5432/rudikcloud}
       REDIS_URL: ${ORDERS_REDIS_URL:-redis://redis:6379/0}
       ORDERS_EVENTS_STREAM: ${ORDERS_EVENTS_STREAM:-orders.events}
+      AUDIT_BASE_URL: ${AUDIT_SERVICE_URL:-http://audit-service-java:8000}
+      AUDIT_INGEST_TOKEN: ${AUDIT_INGEST_TOKEN:-dev-audit-token}
+      AUDIT_REQUEST_TIMEOUT_SECONDS: ${ORDERS_AUDIT_REQUEST_TIMEOUT_SECONDS:-5}
       AUTH_SERVICE_URL: ${ORDERS_AUTH_SERVICE_URL:-http://auth-service:8000}
       AUTH_REQUEST_TIMEOUT_SECONDS: ${ORDERS_AUTH_REQUEST_TIMEOUT_SECONDS:-5}
       FLAGS_SERVICE_URL: ${ORDERS_FLAGS_SERVICE_URL:-http://flags-service:8000}
@@ -98,6 +103,9 @@ services:
       context: ../flags-service
     environment:
       DATABASE_URL: ${FLAGS_DATABASE_URL:-postgresql://rudik:rudik@postgres:5432/rudikcloud}
+      AUDIT_BASE_URL: ${AUDIT_SERVICE_URL:-http://audit-service-java:8000}
+      AUDIT_INGEST_TOKEN: ${AUDIT_INGEST_TOKEN:-dev-audit-token}
+      AUDIT_REQUEST_TIMEOUT_SECONDS: ${FLAGS_AUDIT_REQUEST_TIMEOUT_SECONDS:-5}
       AUTH_SERVICE_URL: ${FLAGS_AUTH_SERVICE_URL:-http://auth-service:8000}
       AUTH_REQUEST_TIMEOUT_SECONDS: ${FLAGS_AUTH_REQUEST_TIMEOUT_SECONDS:-5}
       PORT: 8000
