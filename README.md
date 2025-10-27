@@ -10,6 +10,10 @@ This repo runs the local RudikCloud stack for Milestone 0:
 - `flags-service` (built from `../flags-service`)
 - `audit-service-java` (built from `../audit-service-java`)
 - `notifications-worker` (built from `../notifications-worker`)
+- OpenTelemetry Collector (`otel-collector`)
+- Prometheus
+- Tempo
+- Grafana
 
 ## Quickstart
 
@@ -61,6 +65,12 @@ curl http://localhost:8002/health
 curl http://localhost:8003/health
 ```
 
+8. Open observability UIs:
+
+- Grafana: `http://localhost:3001` (default login `admin` / `admin`)
+- Prometheus: `http://localhost:9090`
+- Tempo API: `http://localhost:3200`
+
 ## Ports
 
 - Dashboard: `3000`
@@ -69,6 +79,11 @@ curl http://localhost:8003/health
 - Flags service: `8003` (mapped to container `8000`)
 - Notifications worker: no host port (background worker only)
 - Audit service: `8004` (mapped to container `8000`)
+- Grafana: `3001` (mapped to container `3000`)
+- Prometheus: `9090`
+- Tempo API: `3200`
+- OTEL Collector OTLP gRPC: `4317`
+- OTEL Collector OTLP HTTP: `4318`
 - PostgreSQL: `5432`
 - Redis: `6379`
 
@@ -85,6 +100,13 @@ Copy `.env.example` to `.env` and adjust if needed.
 - `DASHBOARD_PORT`: Host port mapped to dashboard container `3000`.
 - `FLAGS_SERVICE_PORT`: Host port mapped to flags-service container `8000`.
 - `AUDIT_SERVICE_PORT`: Host port mapped to audit-service-java container `8000`.
+- `GRAFANA_PORT`: Host port mapped to Grafana container `3000`.
+- `PROMETHEUS_PORT`: Host port mapped to Prometheus container `9090`.
+- `TEMPO_PORT`: Host port mapped to Tempo API container `3200`.
+- `OTEL_COLLECTOR_OTLP_GRPC_PORT`: Host port mapped to OpenTelemetry Collector OTLP gRPC (`4317`).
+- `OTEL_COLLECTOR_OTLP_HTTP_PORT`: Host port mapped to OpenTelemetry Collector OTLP HTTP (`4318`).
+- `GRAFANA_ADMIN_USER`: Grafana admin username for local dev.
+- `GRAFANA_ADMIN_PASSWORD`: Grafana admin password for local dev.
 - `AUTH_DATABASE_URL`: DB URL used by auth-service.
 - `AUTH_REDIS_URL`: Redis URL used by auth-service.
 - `AUTH_JWT_SECRET`: JWT signing secret for auth-service (dev placeholder).
@@ -126,4 +148,8 @@ Copy `.env.example` to `.env` and adjust if needed.
 - Milestone 4 worker demo: set `NOTIFICATIONS_FAIL_MODE=always` in `infra/.env`, restart `notifications-worker`, create an order, then inspect DLQ with:
   `docker compose exec -T redis redis-cli XRANGE orders.dlq - +`.
 - Milestone 5 audit quick check: `curl -i http://localhost:8004/health`.
+- Milestone 6 observability:
+  - Prometheus scrapes the OTEL collector metrics endpoint (`otel-collector:9464`).
+  - Tempo receives traces from OTEL collector (`tempo:4317`).
+  - Grafana is pre-provisioned with Prometheus + Tempo datasources and a starter dashboard (`RudikCloud Observability Overview`).
 - This setup is intentionally dev-friendly and not production hardened.
