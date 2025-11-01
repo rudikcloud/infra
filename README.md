@@ -107,6 +107,11 @@ Copy `.env.example` to `.env` and adjust if needed.
 - `OTEL_COLLECTOR_OTLP_HTTP_PORT`: Host port mapped to OpenTelemetry Collector OTLP HTTP (`4318`).
 - `GRAFANA_ADMIN_USER`: Grafana admin username for local dev.
 - `GRAFANA_ADMIN_PASSWORD`: Grafana admin password for local dev.
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: OTLP gRPC endpoint used by Python services (`auth-service`, `orders-service`, `flags-service`, `notifications-worker`).
+- `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`: OTLP traces endpoint used by `audit-service-java`.
+- `OTEL_SERVICE_VERSION`: Common service version attribute for telemetry resource data.
+- `OTEL_ENVIRONMENT`: Common deployment environment resource attribute.
+- `OTEL_TRACES_SAMPLER`: Trace sampling strategy (`always_on` by default for local dev).
 - `AUTH_DATABASE_URL`: DB URL used by auth-service.
 - `AUTH_REDIS_URL`: Redis URL used by auth-service.
 - `AUTH_JWT_SECRET`: JWT signing secret for auth-service (dev placeholder).
@@ -152,4 +157,33 @@ Copy `.env.example` to `.env` and adjust if needed.
   - Prometheus scrapes the OTEL collector metrics endpoint (`otel-collector:9464`).
   - Tempo receives traces from OTEL collector (`tempo:4317`).
   - Grafana is pre-provisioned with Prometheus + Tempo datasources and a starter dashboard (`RudikCloud Observability Overview`).
+  - Instrumented services (`auth-service`, `orders-service`, `flags-service`, `notifications-worker`, `audit-service-java`) send traces/metrics via OTLP using compose-wired `OTEL_*` env vars.
 - This setup is intentionally dev-friendly and not production hardened.
+
+## Observability Usage
+
+1. Start stack:
+
+```bash
+docker compose up --build
+```
+
+2. Generate traffic:
+
+```bash
+curl -i http://localhost:8001/health
+curl -i http://localhost:8002/health
+curl -i http://localhost:8003/health
+curl -i http://localhost:8004/health
+```
+
+3. View metrics in Prometheus (`http://localhost:9090`):
+
+- Query `up`
+- Query `otelcol_receiver_accepted_spans`
+
+4. View traces in Grafana (`http://localhost:3001`):
+
+- Login with `admin` / `admin`
+- Open Explore, choose `Tempo`
+- Filter by service name, e.g. `service.name=orders-service`
