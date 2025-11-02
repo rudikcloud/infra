@@ -1,189 +1,124 @@
-## Infra (Local Dev Orchestration)
+# RudikCloud Infra: System Tour
 
-This repo runs the local RudikCloud stack for Milestone 0:
+RudikCloud is a multi-repo, production-style microservices platform built for portfolio demonstration. It shows how independent services can coordinate authentication, feature flags, order processing, background jobs, audit logging, and observability in a single local environment.
 
-- PostgreSQL
-- Redis
-- `auth-service` (built from `../auth-service`)
-- `dashboard` (built from `../dashboard`)
-- `orders-service` (built from `../orders-service`)
-- `flags-service` (built from `../flags-service`)
-- `audit-service-java` (built from `../audit-service-java`)
-- `notifications-worker` (built from `../notifications-worker`)
-- OpenTelemetry Collector (`otel-collector`)
-- Prometheus
-- Tempo
-- Grafana
+This `infra` repo is the local control plane: it orchestrates every service with Docker Compose so a reviewer can run one command and walk through a complete platform story from UI actions to backend traces.
 
-## Quickstart
+## Quickstart (One Command)
 
-1. Create local env file:
+From `infra/`:
+
+```bash
+docker compose up --build
+```
+
+That command builds and starts dashboard, APIs, worker, data stores, and observability.
+
+Useful helpers:
+
+```bash
+make up
+make down
+make logs
+make reset
+```
+
+## System URLs and Ports
+
+| Component | URL | Notes |
+|---|---|---|
+| Dashboard | http://localhost:3000 | Main UI (`/login`, `/orders`, `/flags`, `/audit`) |
+| Auth Service | http://localhost:8001 | Cookie session auth (`/auth/*`, `/me`) |
+| Orders Service | http://localhost:8002 | Orders API + notification status |
+| Flags Service | http://localhost:8003 | Feature flag CRUD + evaluation |
+| Audit Service (Java) | http://localhost:8004 | Audit ingest/search |
+| Grafana | http://localhost:3001 | Login: `admin` / `admin` |
+| Prometheus | http://localhost:9090 | Metrics query UI |
+| Tempo (Trace Backend API) | http://localhost:3200 | Trace storage backend |
+| Postgres | localhost:5432 | Shared DB for platform data |
+| Redis | localhost:6379 | Streams, cache, retry queues |
+| OTEL Collector gRPC | localhost:4317 | OTLP ingest for instrumented services |
+| OTEL Collector HTTP | localhost:4318 | OTLP HTTP ingest |
+
+## Services Started by Compose
+
+- `dashboard` (`../dashboard`)
+- `auth-service` (`../auth-service`)
+- `orders-service` (`../orders-service`)
+- `flags-service` (`../flags-service`)
+- `audit-service-java` (`../audit-service-java`)
+- `notifications-worker` (`../notifications-worker`)
+- `postgres`, `redis`
+- `otel-collector`, `prometheus`, `tempo`, `grafana`
+
+## Demo Flow (End-to-End)
+
+1. Open dashboard at `http://localhost:3000` and register/login.
+2. Create or update `newCheckout` flag in `/flags`.
+3. Create an order in `/orders` and observe checkout variant + notification status.
+4. Refresh `/orders` and watch notification status move (`pending` to `sent`, or `retrying`/`failed` in fail mode).
+5. Open `/audit` and verify flag/order audit entries.
+6. Open Grafana (`http://localhost:3001`) and inspect traces/metrics.
+7. Run failure injection (`NOTIFICATIONS_FAIL_MODE=always`) and observe retries + DLQ behavior.
+
+Detailed command-by-command script is in `RUNBOOK.md`.
+
+## Environment Configuration
+
+Copy env template once:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Start the stack from `infra/`:
+`infra/.env.example` documents all variables, including service URLs, DB/Redis settings, auth cookie settings, audit token, worker retry/DLQ settings, and OTEL exporter/sampler settings.
+
+## Troubleshooting
+
+### Port already in use
+
+If startup fails with bind errors (for example `5432` already allocated):
+
+```bash
+docker compose down
+# free the conflicting local service/process, then
+make up
+```
+
+### Rebuild after dependency or Dockerfile changes
 
 ```bash
 docker compose up --build
 ```
 
-Or with Make:
-
-```bash
-make up
-```
-
-3. Stop the stack:
-
-```bash
-make down
-```
-
-4. Follow logs:
-
-```bash
-make logs
-```
-
-5. Reset containers + volumes:
+### Reset everything (containers + volumes)
 
 ```bash
 make reset
 ```
 
-6. Quick health check for orders-service:
+This removes local Postgres/Redis volume data for a clean slate.
+
+### Migration mismatch / schema drift
+
+Each backend container runs migrations on startup. If data is stale, run `make reset` and restart, or execute service-specific migration commands from each repo README.
+
+### Services are up but dashboard actions fail
+
+- Verify health quickly:
 
 ```bash
-curl http://localhost:8002/health
-```
-
-7. Quick health check for flags-service:
-
-```bash
-curl http://localhost:8003/health
-```
-
-8. Open observability UIs:
-
-- Grafana: `http://localhost:3001` (default login `admin` / `admin`)
-- Prometheus: `http://localhost:9090`
-- Tempo API: `http://localhost:3200`
-
-## Ports
-
-- Dashboard: `3000`
-- Auth service: `8001`
-- Orders service: `8002` (fixed host mapping)
-- Flags service: `8003` (mapped to container `8000`)
-- Notifications worker: no host port (background worker only)
-- Audit service: `8004` (mapped to container `8000`)
-- Grafana: `3001` (mapped to container `3000`)
-- Prometheus: `9090`
-- Tempo API: `3200`
-- OTEL Collector OTLP gRPC: `4317`
-- OTEL Collector OTLP HTTP: `4318`
-- PostgreSQL: `5432`
-- Redis: `6379`
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and adjust if needed.
-
-- `POSTGRES_DB`: PostgreSQL database name.
-- `POSTGRES_USER`: PostgreSQL username.
-- `POSTGRES_PASSWORD`: PostgreSQL password (dev-only default).
-- `POSTGRES_PORT`: Host port mapped to container Postgres `5432`.
-- `REDIS_PORT`: Host port mapped to container Redis `6379`.
-- `AUTH_SERVICE_PORT`: Host port mapped to auth-service container `8001`.
-- `DASHBOARD_PORT`: Host port mapped to dashboard container `3000`.
-- `FLAGS_SERVICE_PORT`: Host port mapped to flags-service container `8000`.
-- `AUDIT_SERVICE_PORT`: Host port mapped to audit-service-java container `8000`.
-- `GRAFANA_PORT`: Host port mapped to Grafana container `3000`.
-- `PROMETHEUS_PORT`: Host port mapped to Prometheus container `9090`.
-- `TEMPO_PORT`: Host port mapped to Tempo API container `3200`.
-- `OTEL_COLLECTOR_OTLP_GRPC_PORT`: Host port mapped to OpenTelemetry Collector OTLP gRPC (`4317`).
-- `OTEL_COLLECTOR_OTLP_HTTP_PORT`: Host port mapped to OpenTelemetry Collector OTLP HTTP (`4318`).
-- `GRAFANA_ADMIN_USER`: Grafana admin username for local dev.
-- `GRAFANA_ADMIN_PASSWORD`: Grafana admin password for local dev.
-- `OTEL_EXPORTER_OTLP_ENDPOINT`: OTLP gRPC endpoint used by Python services (`auth-service`, `orders-service`, `flags-service`, `notifications-worker`).
-- `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`: OTLP traces endpoint used by `audit-service-java`.
-- `OTEL_SERVICE_VERSION`: Common service version attribute for telemetry resource data.
-- `OTEL_ENVIRONMENT`: Common deployment environment resource attribute.
-- `OTEL_TRACES_SAMPLER`: Trace sampling strategy (`always_on` by default for local dev).
-- `AUTH_DATABASE_URL`: DB URL used by auth-service.
-- `AUTH_REDIS_URL`: Redis URL used by auth-service.
-- `AUTH_JWT_SECRET`: JWT signing secret for auth-service (dev placeholder).
-- `AUTH_JWT_ISSUER`: JWT issuer value for auth-service.
-- `AUTH_CORS_ORIGINS`: Allowed CORS origins for auth-service (default includes both `localhost:3000` and `127.0.0.1:3000`).
-- `AUTH_SESSION_COOKIE_NAME`: Auth session cookie name.
-- `AUTH_SESSION_TTL_SECONDS`: Session lifetime in seconds.
-- `AUTH_COOKIE_SECURE`: Whether auth cookie requires HTTPS.
-- `AUTH_COOKIE_SAMESITE`: SameSite value for auth cookie.
-- `NEXT_PUBLIC_AUTH_BASE_URL`: Browser-facing auth-service URL used by dashboard (default `http://localhost:8001`).
-- `ORDERS_DATABASE_URL`: DB URL used by orders-service.
-- `ORDERS_REDIS_URL`: Redis URL used by orders-service.
-- `ORDERS_EVENTS_STREAM`: Stream name where orders-service emits `order.created`.
-- `ORDERS_AUTH_SERVICE_URL`: Internal auth-service URL used by orders-service for `/me` validation.
-- `ORDERS_AUTH_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for orders-service auth-service calls.
-- `ORDERS_FLAGS_SERVICE_URL`: Internal flags-service URL used by orders-service.
-- `ORDERS_FLAGS_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for orders-service flags-service calls.
-- `ORDERS_AUDIT_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for orders-service audit-service calls.
-- `FLAGS_DATABASE_URL`: DB URL used by flags-service.
-- `FLAGS_AUTH_SERVICE_URL`: Internal auth-service URL used by flags-service for `/me` validation.
-- `FLAGS_AUTH_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for flags-service auth-service calls.
-- `FLAGS_AUDIT_REQUEST_TIMEOUT_SECONDS`: Timeout (seconds) for flags-service audit-service calls.
-- `AUDIT_DATABASE_URL`: JDBC URL used by audit-service-java.
-- `AUDIT_INGEST_TOKEN`: Shared internal header token used by audit ingestion (`X-Internal-Token`).
-- `AUDIT_SERVICE_URL`: Internal base URL for audit-service-java (for service-to-service usage).
-- `NOTIFICATIONS_DATABASE_URL`: DB URL used by notifications-worker.
-- `NOTIFICATIONS_REDIS_URL`: Redis URL used by notifications-worker.
-- `NOTIFICATIONS_ORDERS_EVENTS_STREAM`: Incoming stream consumed by notifications-worker.
-- `NOTIFICATIONS_ORDERS_RETRY_ZSET`: Retry queue zset name.
-- `NOTIFICATIONS_ORDERS_DLQ_STREAM`: Dead-letter queue stream name.
-- `NOTIFICATIONS_MAX_ATTEMPTS`: Max attempts before worker writes to DLQ.
-- `NOTIFICATIONS_WORKER_POLL_INTERVAL_MS`: Poll interval for worker stream/retry processing.
-- `NOTIFICATIONS_FAIL_MODE`: Failure simulation mode (`off`, `always`, `random`).
-
-## Notes
-
-- `auth-service` and `dashboard` need their own `Dockerfile` to build successfully.
-- Milestone 1 auth defaults are set for local dev: `AUTH_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000`, `AUTH_COOKIE_SECURE=false`, `AUTH_COOKIE_SAMESITE=lax`.
-- Milestone 4 worker demo: set `NOTIFICATIONS_FAIL_MODE=always` in `infra/.env`, restart `notifications-worker`, create an order, then inspect DLQ with:
-  `docker compose exec -T redis redis-cli XRANGE orders.dlq - +`.
-- Milestone 5 audit quick check: `curl -i http://localhost:8004/health`.
-- Milestone 6 observability:
-  - Prometheus scrapes the OTEL collector metrics endpoint (`otel-collector:9464`).
-  - Tempo receives traces from OTEL collector (`tempo:4317`).
-  - Grafana is pre-provisioned with Prometheus + Tempo datasources and a starter dashboard (`RudikCloud Observability Overview`).
-  - Instrumented services (`auth-service`, `orders-service`, `flags-service`, `notifications-worker`, `audit-service-java`) send traces/metrics via OTLP using compose-wired `OTEL_*` env vars.
-- This setup is intentionally dev-friendly and not production hardened.
-
-## Observability Usage
-
-1. Start stack:
-
-```bash
-docker compose up --build
-```
-
-2. Generate traffic:
-
-```bash
+docker compose ps
 curl -i http://localhost:8001/health
 curl -i http://localhost:8002/health
 curl -i http://localhost:8003/health
 curl -i http://localhost:8004/health
 ```
 
-3. View metrics in Prometheus (`http://localhost:9090`):
+- Confirm `infra/.env` has matching URLs and tokens.
 
-- Query `up`
-- Query `otelcol_receiver_accepted_spans`
+## Related Docs
 
-4. View traces in Grafana (`http://localhost:3001`):
-
-- Login with `admin` / `admin`
-- Open Explore, choose `Tempo`
-- Filter by service name, e.g. `service.name=orders-service`
+- `RUNBOOK.md`: copy/paste demo and failure injection runbook
+- `ARCHITECTURE.md`: Mermaid architecture + data flows
+- `PORTFOLIO_SUMMARY.md`: project-card and resume-ready summary text
