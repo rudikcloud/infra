@@ -30,6 +30,21 @@ Open these tabs:
 5. Dashboard `/orders`: confirm newest order shows checkout variant (`new`) and notification fields.
 6. Dashboard `/audit`: filter for `FLAG_UPDATED` or `ORDER_CREATED` and open a detail row.
 
+## 2.1) 90-Second Script (What to Click and Say)
+
+1. Open `/login` and sign in.
+   Say: "This platform uses cookie sessions via auth-service, so identity is shared safely across services."
+2. Open `/flags`, set `newCheckout` ON, rollout `100%`.
+   Say: "Feature flags are managed independently and evaluated per user."
+3. Open `/orders`, create an order, then refresh list.
+   Say: "Order creation calls auth + flags, stores checkout variant, and emits an event for async processing."
+4. Point to notification status/attempts on the order row.
+   Say: "The worker updates delivery state with retry and failure metadata."
+5. Open `/audit` and show matching event detail.
+   Say: "All key actions are written to a centralized audit service."
+6. Open Grafana/Tempo and show traces.
+   Say: "Telemetry ties the full request path together across services for debugging and reliability demos."
+
 ## 3) CLI Demo Script (Optional Copy/Paste)
 
 From `infra/`:
