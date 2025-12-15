@@ -77,4 +77,5 @@ Copy `.env.example` to `.env` and adjust if needed.
 ## Notes
 
 - `auth-service` and `dashboard` need their own `Dockerfile` to build successfully.
+- Milestone 1 auth defaults are set for local dev: `AUTH_CORS_ORIGINS=http://localhost:3000`, `AUTH_COOKIE_SECURE=false`, `AUTH_COOKIE_SAMESITE=lax`.
 - This setup is intentionally dev-friendly and not production hardened.
