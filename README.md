@@ -1,3 +1,5 @@
+[![CI](https://github.com/rudikcloud/infra/actions/workflows/ci.yml/badge.svg)](https://github.com/rudikcloud/infra/actions/workflows/ci.yml)
+
 # RudikCloud Infra: System Tour
 
 RudikCloud is a multi-repo, production-style microservices platform built for portfolio demonstration. It shows how independent services can coordinate authentication, feature flags, order processing, background jobs, audit logging, and observability in a single local environment.
