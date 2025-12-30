@@ -34,6 +34,7 @@ make reset
 | Orders Service | http://localhost:8002 | Orders API + notification status |
 | Flags Service | http://localhost:8003 | Feature flag CRUD + evaluation |
 | Audit Service (Java) | http://localhost:8004 | Audit ingest/search |
+| AI Incident Intelligence | http://localhost:8010 | Incident analysis inference API |
 | Grafana | http://localhost:3001 | Login: `admin` / `admin` |
 | Prometheus | http://localhost:9090 | Metrics query UI |
 | Tempo (Trace Backend API) | http://localhost:3200 | Trace storage backend |
@@ -49,6 +50,7 @@ make reset
 - `orders-service` (`../orders-service`)
 - `flags-service` (`../flags-service`)
 - `audit-service-java` (`../audit-service-java`)
+- `ai-incident-intelligence` (`../ai-incident-intelligence`)
 - `notifications-worker` (`../notifications-worker`)
 - `postgres`, `redis`
 - `otel-collector`, `prometheus`, `tempo`, `grafana`
@@ -62,6 +64,7 @@ make reset
 5. Open `/audit` and verify flag/order audit entries.
 6. Open Grafana (`http://localhost:3001`) and inspect traces/metrics.
 7. Run failure injection (`NOTIFICATIONS_FAIL_MODE=always`) and observe retries + DLQ behavior.
+8. Call AI analysis endpoint (`http://localhost:8010/incident/analyze`) using sample payload from `ai-incident-intelligence/README.md`.
 
 Detailed command-by-command script is in `RUNBOOK.md`.
 
